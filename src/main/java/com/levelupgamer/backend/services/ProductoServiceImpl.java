@@ -1,0 +1,147 @@
+package com.levelupgamer.backend.services;
+
+
+import com.levelupgamer.backend.dtos.ProductoDTO;
+import com.levelupgamer.backend.models.entities.Categoria;
+import com.levelupgamer.backend.models.entities.Producto;
+import com.levelupgamer.backend.repositories.CategoriaRepository;
+import com.levelupgamer.backend.repositories.ProductoRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+@Transactional
+public class ProductoServiceImpl implements ProductoService {
+
+    private final ProductoRepository productoRepository;
+    private final CategoriaRepository categoriaRepository;
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProductoDTO> listarTodos() {
+        return productoRepository.findAll()
+                .stream()
+                .map(this::mapearAProductoDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ProductoDTO obtenerPorId(Long id) {
+        Producto producto = productoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado con id " + id));
+        return mapearAProductoDTO(producto);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProductoDTO> listarPorCategoria(Long categoriaId) {
+        Categoria categoria = categoriaRepository.findById(categoriaId)
+                .orElseThrow(() -> new RuntimeException("Categoría no encontrada con id " + categoriaId));
+
+        return productoRepository.findByCategoria(categoria)
+                .stream()
+                .map(this::mapearAProductoDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public ProductoDTO crearProducto(ProductoDTO dto) {
+        Categoria categoria = obtenerOCrearCategoria(dto);
+
+        Producto producto = new Producto();
+        producto.setNombre(dto.getNombre());
+        producto.setDescripcion(dto.getDescripcion());
+        producto.setPrecio(dto.getPrecio());
+        producto.setImagenUrl(dto.getImagenUrl());
+        producto.setStockDisponible(dto.getStockDisponible());
+        producto.setCategoria(categoria);
+
+        Producto guardado = productoRepository.save(producto);
+
+        return mapearAProductoDTO(guardado);
+    }
+
+    @Override
+    public ProductoDTO actualizarProducto(Long id, ProductoDTO dto) {
+        Producto producto = productoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado con id " + id));
+
+        Categoria categoria = obtenerOCrearCategoria(dto);
+
+        producto.setNombre(dto.getNombre());
+        producto.setDescripcion(dto.getDescripcion());
+        producto.setPrecio(dto.getPrecio());
+        producto.setImagenUrl(dto.getImagenUrl());
+        producto.setStockDisponible(dto.getStockDisponible());
+        producto.setCategoria(categoria);
+
+        Producto actualizado = productoRepository.save(producto);
+
+        return mapearAProductoDTO(actualizado);
+    }
+
+    @Override
+    public void eliminarProducto(Long id) {
+        if (!productoRepository.existsById(id)) {
+            throw new RuntimeException("Producto no encontrado con id " + id);
+        }
+        productoRepository.deleteById(id);
+    }
+
+    // =======================
+    // Métodos auxiliares
+    // =======================
+
+    private Categoria obtenerOCrearCategoria(ProductoDTO dto) {
+        if (dto.getCategoriaId() != null) {
+            return categoriaRepository.findById(dto.getCategoriaId())
+                    .orElseThrow(() -> new RuntimeException("Categoría no encontrada con id " + dto.getCategoriaId()));
+        }
+
+        if (dto.getCategoriaNombre() != null && !dto.getCategoriaNombre().isBlank()) {
+            return categoriaRepository
+                    .findByNombreIgnoreCase(dto.getCategoriaNombre().trim())
+                    .orElseGet(() -> {
+                        Categoria nueva = new Categoria();
+                        nueva.setNombre(dto.getCategoriaNombre().trim());
+                        nueva.setDescripcion("Creada automáticamente");
+                        return categoriaRepository.save(nueva);
+                    });
+        }
+
+        // Categoría por defecto
+        Categoria defaultCat = categoriaRepository
+                .findByNombreIgnoreCase("General")
+                .orElseGet(() -> {
+                    Categoria c = new Categoria();
+                    c.setNombre("General");
+                    c.setDescripcion("Categoría por defecto");
+                    return categoriaRepository.save(c);
+                });
+
+        return defaultCat;
+    }
+
+    private ProductoDTO mapearAProductoDTO(Producto producto) {
+        ProductoDTO dto = new ProductoDTO();
+        dto.setId(producto.getId());
+        dto.setNombre(producto.getNombre());
+        dto.setDescripcion(producto.getDescripcion());
+        dto.setPrecio(producto.getPrecio());
+        dto.setImagenUrl(producto.getImagenUrl());
+        dto.setStockDisponible(producto.getStockDisponible());
+
+        if (producto.getCategoria() != null) {
+            dto.setCategoriaId(producto.getCategoria().getId());
+            dto.setCategoriaNombre(producto.getCategoria().getNombre());
+        }
+
+        return dto;
+    }
+}
