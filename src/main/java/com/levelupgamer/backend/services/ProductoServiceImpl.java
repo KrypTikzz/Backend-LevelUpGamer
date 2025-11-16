@@ -55,11 +55,12 @@ public class ProductoServiceImpl implements ProductoService {
         Categoria categoria = obtenerOCrearCategoria(dto);
 
         Producto producto = new Producto();
-        producto.setNombre(dto.getNombre());
-        producto.setDescripcion(dto.getDescripcion());
-        producto.setPrecio(dto.getPrecio());
+        // Usamos los nombres de propiedades alineados con la app móvil.
+        producto.setNombreProducto(dto.getNombreProducto());
+        producto.setDescripcionProducto(dto.getDescripcionProducto());
+        producto.setPrecioProducto(dto.getPrecioProducto());
         producto.setImagenUrl(dto.getImagenUrl());
-        producto.setStockDisponible(dto.getStockDisponible());
+        producto.setCantidadDisponible(dto.getCantidadDisponible());
         producto.setCategoria(categoria);
 
         Producto guardado = productoRepository.save(producto);
@@ -74,11 +75,11 @@ public class ProductoServiceImpl implements ProductoService {
 
         Categoria categoria = obtenerOCrearCategoria(dto);
 
-        producto.setNombre(dto.getNombre());
-        producto.setDescripcion(dto.getDescripcion());
-        producto.setPrecio(dto.getPrecio());
+        producto.setNombreProducto(dto.getNombreProducto());
+        producto.setDescripcionProducto(dto.getDescripcionProducto());
+        producto.setPrecioProducto(dto.getPrecioProducto());
         producto.setImagenUrl(dto.getImagenUrl());
-        producto.setStockDisponible(dto.getStockDisponible());
+        producto.setCantidadDisponible(dto.getCantidadDisponible());
         producto.setCategoria(categoria);
 
         Producto actualizado = productoRepository.save(producto);
@@ -99,29 +100,32 @@ public class ProductoServiceImpl implements ProductoService {
     // =======================
 
     private Categoria obtenerOCrearCategoria(ProductoDTO dto) {
+        // Si hay id de categoría, usamos la existente
         if (dto.getCategoriaId() != null) {
             return categoriaRepository.findById(dto.getCategoriaId())
                     .orElseThrow(() -> new RuntimeException("Categoría no encontrada con id " + dto.getCategoriaId()));
         }
 
-        if (dto.getCategoriaNombre() != null && !dto.getCategoriaNombre().isBlank()) {
+        // Si se proporcionó el nombre de la categoría (categoriaProducto), buscar o crear
+        if (dto.getCategoriaProducto() != null && !dto.getCategoriaProducto().isBlank()) {
+            String nombre = dto.getCategoriaProducto().trim();
             return categoriaRepository
-                    .findByNombreIgnoreCase(dto.getCategoriaNombre().trim())
+                    .findByNombreCategoriaIgnoreCase(nombre)
                     .orElseGet(() -> {
                         Categoria nueva = new Categoria();
-                        nueva.setNombre(dto.getCategoriaNombre().trim());
-                        nueva.setDescripcion("Creada automáticamente");
+                        nueva.setNombreCategoria(nombre);
+                        nueva.setDescripcionCategoria("Creada automáticamente");
                         return categoriaRepository.save(nueva);
                     });
         }
 
         // Categoría por defecto
         Categoria defaultCat = categoriaRepository
-                .findByNombreIgnoreCase("General")
+                .findByNombreCategoriaIgnoreCase("General")
                 .orElseGet(() -> {
                     Categoria c = new Categoria();
-                    c.setNombre("General");
-                    c.setDescripcion("Categoría por defecto");
+                    c.setNombreCategoria("General");
+                    c.setDescripcionCategoria("Categoría por defecto");
                     return categoriaRepository.save(c);
                 });
 
@@ -131,15 +135,15 @@ public class ProductoServiceImpl implements ProductoService {
     private ProductoDTO mapearAProductoDTO(Producto producto) {
         ProductoDTO dto = new ProductoDTO();
         dto.setId(producto.getId());
-        dto.setNombre(producto.getNombre());
-        dto.setDescripcion(producto.getDescripcion());
-        dto.setPrecio(producto.getPrecio());
+        dto.setNombreProducto(producto.getNombreProducto());
+        dto.setDescripcionProducto(producto.getDescripcionProducto());
+        dto.setPrecioProducto(producto.getPrecioProducto());
         dto.setImagenUrl(producto.getImagenUrl());
-        dto.setStockDisponible(producto.getStockDisponible());
+        dto.setCantidadDisponible(producto.getCantidadDisponible());
 
         if (producto.getCategoria() != null) {
             dto.setCategoriaId(producto.getCategoria().getId());
-            dto.setCategoriaNombre(producto.getCategoria().getNombre());
+            dto.setCategoriaProducto(producto.getCategoria().getNombreCategoria());
         }
 
         return dto;

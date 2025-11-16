@@ -16,9 +16,17 @@ public class Categoria {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 100)
-    private String nombre;
+    /**
+     * Nombre de la categoría. Se expone como "nombreCategoria" para alinear
+     * los nombres con la versión móvil. La columna en la base de datos
+     * permanece como "nombre".
+     */
+    @Column(name = "nombre", nullable = false, unique = true, length = 100)
+    private String nombreCategoria;
 
-    @Column(length = 255)
-    private String descripcion;
+    /**
+     * Descripción de la categoría. La columna original "descripcion" se mantiene.
+     */
+    @Column(name = "descripcion", length = 255)
+    private String descripcionCategoria;
 }

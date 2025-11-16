@@ -5,6 +5,13 @@ import lombok.Data;
 @Data
 public class CategoriaDTO {
     private Long id;
-    private String nombre;
-    private String descripcion;
+    /**
+     * Nombre de la categoría. Coincide con el naming de la app móvil.
+     */
+    private String nombreCategoria;
+
+    /**
+     * Descripción de la categoría.
+     */
+    private String descripcionCategoria;
 }

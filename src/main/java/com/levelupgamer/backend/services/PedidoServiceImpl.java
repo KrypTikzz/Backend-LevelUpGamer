@@ -65,21 +65,21 @@ public class PedidoServiceImpl implements PedidoService {
             }
 
             // (Opcional) validar stock
-            if (producto.getStockDisponible() != null &&
-                    producto.getStockDisponible() < item.getCantidad()) {
+            if (producto.getCantidadDisponible() != null &&
+                    producto.getCantidadDisponible() < item.getCantidad()) {
                 throw new ResponseStatusException(
                         HttpStatus.BAD_REQUEST,
-                        "No hay stock suficiente para el producto " + producto.getNombre()
+                        "No hay stock suficiente para el producto " + producto.getNombreProducto()
                 );
             }
 
             // Actualizar stock
-            if (producto.getStockDisponible() != null) {
-                producto.setStockDisponible(producto.getStockDisponible() - item.getCantidad());
+            if (producto.getCantidadDisponible() != null) {
+                producto.setCantidadDisponible(producto.getCantidadDisponible() - item.getCantidad());
                 productoRepository.save(producto);
             }
 
-            Double precioUnitario = producto.getPrecio();
+            Double precioUnitario = producto.getPrecioProducto();
             Double subtotal = precioUnitario * item.getCantidad();
             total += subtotal;
 
@@ -155,7 +155,7 @@ public class PedidoServiceImpl implements PedidoService {
                 .map(det -> {
                     DetallePedidoDTO d = new DetallePedidoDTO();
                     d.setProductoId(det.getProducto().getId());
-                    d.setNombreProducto(det.getProducto().getNombre());
+                    d.setNombreProducto(det.getProducto().getNombreProducto());
                     d.setCantidad(det.getCantidad());
                     d.setPrecioUnitario(det.getPrecioUnitario());
                     d.setSubtotal(det.getSubtotal());

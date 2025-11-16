@@ -7,5 +7,9 @@ import java.util.Optional;
 
 public interface CategoriaRepository extends JpaRepository<Categoria, Long> {
 
-    Optional<Categoria> findByNombreIgnoreCase(String nombre);
+    /**
+     * Busca una categoría por su nombre (ignorando mayúsculas y minúsculas).
+     * Se ajusta al nombre de propiedad "nombreCategoria" de la entidad.
+     */
+    Optional<Categoria> findByNombreCategoriaIgnoreCase(String nombreCategoria);
 }
