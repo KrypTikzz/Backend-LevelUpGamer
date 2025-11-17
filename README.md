@@ -62,4 +62,8 @@ Endpoints de usuarios
 
 ## 6. Captura apk firmada + key
 
+## 7. Link Trello
+
+https://trello.com/b/FHcaaLaO/level-up-backend
+
 <img width="236" height="93" alt="image" src="https://github.com/user-attachments/assets/68ecfd8a-1ab1-4398-ab4a-0780d3b25817" />
