@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "usuarios")
@@ -30,7 +31,11 @@ public class Usuario {
     @NotBlank
     private String contrasena;
 
-    private Integer edad;
+    // ✅ Nuevos campos para igualar a la Web
+    private String telefono;
+    private String region;
+    private String comuna;
+    private LocalDate fechaNacimiento;
 
     @Enumerated(EnumType.STRING)
     private Rol rol = Rol.CLIENTE;
