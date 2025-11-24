@@ -1,5 +1,6 @@
 package com.levelupgamer.backend.services;
 
+import com.levelupgamer.backend.models.Rol;
 import com.levelupgamer.backend.models.entities.Usuario;
 import com.levelupgamer.backend.repositories.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
@@ -9,12 +10,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class UsuarioServiceImpl implements UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
@@ -31,68 +31,64 @@ public class UsuarioServiceImpl implements UsuarioService {
         return usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "Usuario no encontrado con id " + id
+                        "usuario no encontrado con id " + id
                 ));
     }
 
     @Override
+    @Transactional
     public Usuario crearUsuario(Usuario usuario) {
-        if (usuarioRepository.existsByCorreo(usuario.getCorreo())) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Ya existe un usuario registrado con el correo " + usuario.getCorreo()
-            );
-        }
 
-        // Aseguramos que se genere un id nuevo
+        // forzar id null para que la BD genere uno
         usuario.setId(null);
 
-        // Si admin viene nulo, lo dejamos en false
-        if (usuario.getAdmin() == null) {
-            usuario.setAdmin(false);
+        // si no viene rol asignado, se deja CLIENTE por defecto
+        if (usuario.getRol() == null) {
+            usuario.setRol(Rol.CLIENTE);
         }
 
         return usuarioRepository.save(usuario);
     }
 
     @Override
+    @Transactional
     public Usuario actualizarUsuario(Long id, Usuario usuarioActualizado) {
+
         Usuario existente = usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "Usuario no encontrado con id " + id
+                        "usuario no encontrado con id " + id
                 ));
 
-        // Si quiere cambiar el correo, validamos que no esté usado por otro usuario
-        if (!Objects.equals(existente.getCorreo(), usuarioActualizado.getCorreo()) &&
-                usuarioRepository.existsByCorreo(usuarioActualizado.getCorreo())) {
-
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Ya existe un usuario con el correo " + usuarioActualizado.getCorreo()
-            );
-        }
-
+        // actualizar campos que sí existen en Usuario.java actual
         existente.setNombre(usuarioActualizado.getNombre());
         existente.setApellido(usuarioActualizado.getApellido());
         existente.setCorreo(usuarioActualizado.getCorreo());
         existente.setContrasena(usuarioActualizado.getContrasena());
-        existente.setEdad(usuarioActualizado.getEdad());
-        existente.setAdmin(
-                usuarioActualizado.getAdmin() != null ? usuarioActualizado.getAdmin() : existente.getAdmin()
-        );
+        existente.setTelefono(usuarioActualizado.getTelefono());
+        existente.setRegion(usuarioActualizado.getRegion());
+        existente.setComuna(usuarioActualizado.getComuna());
+        existente.setFechaNacimiento(usuarioActualizado.getFechaNacimiento());
+
+        // actualizar rol si viene uno distinto
+        if (usuarioActualizado.getRol() != null) {
+            existente.setRol(usuarioActualizado.getRol());
+        }
 
         return usuarioRepository.save(existente);
     }
 
     @Override
+    @Transactional
     public void eliminarUsuario(Long id) {
+
         if (!usuarioRepository.existsById(id)) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
-                    "Usuario no encontrado con id " + id
+                    "usuario no encontrado con id " + id
             );
         }
+
         usuarioRepository.deleteById(id);
     }
 
