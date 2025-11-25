@@ -86,6 +86,14 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- swagger / openapi (documentación API REST) -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.3.0</version>
+        </dependency>
+
+
     </dependencies>
 
     <build>
