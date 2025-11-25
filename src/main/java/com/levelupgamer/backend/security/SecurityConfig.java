@@ -3,6 +3,7 @@ package com.levelupgamer.backend.security;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod; // 👈 Importante importar esto
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
@@ -27,6 +28,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()       // registro y login libres
                 .requestMatchers("/api/productos/**").permitAll()  // productos libres
+                .requestMatchers(HttpMethod.GET, "/api/categorias/**").permitAll() // categorias agregadas
                 .anyRequest().authenticated()                      // lo demás requiere token
         );
 
