@@ -4,23 +4,22 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 
-/**
- * filtro para validar el token jwt en cada peticion http
- * se ejecuta una vez por request
- */
 @Component
+@RequiredArgsConstructor // ✅ Usamos Lombok para el constructor
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
-
-    public JwtFilter(JwtUtils jwtUtils) {
-        this.jwtUtils = jwtUtils;
-    }
 
     @Override
     protected void doFilterInternal(
@@ -32,18 +31,30 @@ public class JwtFilter extends OncePerRequestFilter {
         String authHeader = request.getHeader("Authorization");
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-
             String token = authHeader.substring(7);
 
-            // si el token NO es valido → rechazar request
-            if (!jwtUtils.tokenValido(token)) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("token invalido o expirado");
-                return;
+            // 1. Validar el token
+            if (jwtUtils.tokenValido(token)) {
+
+                // 2. Extraer información del token
+                String correo = jwtUtils.obtenerCorreo(token);
+                String rol = jwtUtils.obtenerRol(token);
+
+                // 3. Convertir el rol a un formato que entienda Spring Security
+                // Spring Security suele esperar "ROLE_ADMIN", pero lo manejaremos simple
+                List<SimpleGrantedAuthority> authorities = Collections.singletonList(
+                        new SimpleGrantedAuthority(rol) // Ej: "ADMIN" o "CLIENTE"
+                );
+
+                // 4. Crear el objeto de autenticación
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(correo, null, authorities);
+
+                // 5. ¡PASO CRUCIAL QUE FALTABA! Guardar la autenticación en el contexto
+                SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         }
 
-        // continuar flujo normal
         filterChain.doFilter(request, response);
     }
 }
