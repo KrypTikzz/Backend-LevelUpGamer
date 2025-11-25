@@ -38,7 +38,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/api/categorias/**").hasAuthority("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/categorias/**").hasAuthority("ADMIN")
 
-                .requestMatchers("/api/usuarios/**").hasAuthority("ADMIN") // Cuidado: esto bloquea el perfil de usuario normal
+                // ✅ Permitir que cualquier usuario logueado vea un perfil específico (necesario para "Mi Perfil")
+                .requestMatchers(HttpMethod.GET, "/api/usuarios/{id}").authenticated()
+                .requestMatchers("/api/usuarios/**").hasAuthority("ADMIN")
 
                 // 4. El resto requiere al menos estar logueado (ej: Pedidos, Perfil propio)
                 .anyRequest().authenticated()
